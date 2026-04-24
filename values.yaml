@@ -1,0 +1,126 @@
+# Global values for the NutriTrack platform deployment repo.
+# Update image repositories/tags here and manage secret data in secrets/*.yaml.
+
+global:
+  appName: nutritrack
+  namespace: nutritrack-dev
+  imagePullSecrets: []
+
+gateway:
+  name: nutritrack-gateway
+  namespace: nutritrack-dev
+  gatewayClassName: envoy-gateway
+  listener:
+    name: http
+    port: 80
+
+postgresql:
+  name: postgresql
+  secretName: postgresql-secret
+  primaryHost: postgresql-0.postgresql
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  port: 5432
+  storage:
+    size: "10Gi"
+    storageClass: ""
+  auth:
+    username: postgres
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+authService:
+  name: auth-service
+  secretName: auth-service-secret
+  routePrefix: /api/auth
+  healthPath: /api/auth/health
+  image:
+    repository: nutritrack360/auth-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 8000
+  database:
+    name: auth_db
+    username: auth_user
+
+foodService:
+  name: food-service
+  secretName: food-service-secret
+  routePrefix: /api/food
+  healthPath: /api/food/health
+  image:
+    repository: nutritrack360/food-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 8001
+  database:
+    name: food_db
+    username: food_user
+
+macroService:
+  name: macro-service
+  secretName: macro-service-secret
+  routePrefix: /api/macro
+  healthPath: /api/macro/health
+  image:
+    repository: nutritrack360/macro-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 8002
+  database:
+    name: macro_db
+    username: macro_user
+
+complianceService:
+  name: compliance-service
+  secretName: compliance-service-secret
+  routePrefix: /api/compliance
+  healthPath: /api/compliance/health
+  image:
+    repository: nutritrack360/compliance-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 8003
+  database:
+    name: compliance_db
+    username: compliance_user
+  thresholds:
+    proteinDeficiencyPct: "80"
+    calorieSurplusPct: "120"
+    calorieDeficitPct: "70"
+    patternDays: "3"
+
+frontend:
+  name: frontend
+  routePrefix: /
+  image:
+    repository: nutritrack360/frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 2
+  port: 3000
+  apiBaseUrl: ""
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilization: 70
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"

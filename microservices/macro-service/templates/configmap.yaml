@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.macroService.name }}-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.macroService.name }}
+data:
+  APP_NAME: "Macro Calculation Service"
+  HOST: "0.0.0.0"
+  PORT: "{{ .Values.macroService.port }}"
+  FOOD_SERVICE_URL: "http://{{ .Values.foodService.name }}:{{ .Values.foodService.port }}"
+  AUTH_SERVICE_URL: "http://{{ .Values.authService.name }}:{{ .Values.authService.port }}"

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.foodService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.foodService.name }}
+    app.kubernetes.io/name: {{ .Values.foodService.name }}
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+spec:
+  replicas: {{ .Values.foodService.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.foodService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.foodService.name }}
+        app.kubernetes.io/name: {{ .Values.foodService.name }}
+        app.kubernetes.io/component: backend
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.foodService.name }}
+          image: "{{ .Values.foodService.image.repository }}:{{ .Values.foodService.image.tag }}"
+          imagePullPolicy: {{ .Values.foodService.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.foodService.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.foodService.name }}-config
+            - secretRef:
+                name: {{ .Values.foodService.secretName }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.foodService.healthPath }}
+              port: {{ .Values.foodService.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.foodService.healthPath }}
+              port: {{ .Values.foodService.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 30

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: envoy-gateway
+description: Envoy Gateway resources for NutriTrack service routing
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

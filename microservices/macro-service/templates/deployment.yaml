@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.macroService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.macroService.name }}
+    app.kubernetes.io/name: {{ .Values.macroService.name }}
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+spec:
+  replicas: {{ .Values.macroService.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.macroService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.macroService.name }}
+        app.kubernetes.io/name: {{ .Values.macroService.name }}
+        app.kubernetes.io/component: backend
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.macroService.name }}
+          image: "{{ .Values.macroService.image.repository }}:{{ .Values.macroService.image.tag }}"
+          imagePullPolicy: {{ .Values.macroService.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.macroService.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.macroService.name }}-config
+            - secretRef:
+                name: {{ .Values.macroService.secretName }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.macroService.healthPath }}
+              port: {{ .Values.macroService.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.macroService.healthPath }}
+              port: {{ .Values.macroService.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 30

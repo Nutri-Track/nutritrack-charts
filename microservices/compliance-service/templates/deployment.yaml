@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.complianceService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.complianceService.name }}
+    app.kubernetes.io/name: {{ .Values.complianceService.name }}
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+spec:
+  replicas: {{ .Values.complianceService.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.complianceService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.complianceService.name }}
+        app.kubernetes.io/name: {{ .Values.complianceService.name }}
+        app.kubernetes.io/component: backend
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.complianceService.name }}
+          image: "{{ .Values.complianceService.image.repository }}:{{ .Values.complianceService.image.tag }}"
+          imagePullPolicy: {{ .Values.complianceService.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.complianceService.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.complianceService.name }}-config
+            - secretRef:
+                name: {{ .Values.complianceService.secretName }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.complianceService.healthPath }}
+              port: {{ .Values.complianceService.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.complianceService.healthPath }}
+              port: {{ .Values.complianceService.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 30

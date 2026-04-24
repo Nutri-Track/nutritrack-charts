@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.authService.name }}-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.authService.name }}
+data:
+  APP_NAME: "Auth Service"
+  HOST: "0.0.0.0"
+  PORT: "{{ .Values.authService.port }}"

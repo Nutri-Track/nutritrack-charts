@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.foodService.name }}-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.foodService.name }}
+data:
+  APP_NAME: "Food Logging Service"
+  HOST: "0.0.0.0"
+  PORT: "{{ .Values.foodService.port }}"

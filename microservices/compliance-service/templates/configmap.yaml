@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.complianceService.name }}-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.complianceService.name }}
+data:
+  APP_NAME: "Compliance & Alert Service"
+  HOST: "0.0.0.0"
+  PORT: "{{ .Values.complianceService.port }}"
+  MACRO_SERVICE_URL: "http://{{ .Values.macroService.name }}:{{ .Values.macroService.port }}"
+  PROTEIN_DEFICIENCY_PCT: "{{ .Values.complianceService.thresholds.proteinDeficiencyPct }}"
+  CALORIE_SURPLUS_PCT: "{{ .Values.complianceService.thresholds.calorieSurplusPct }}"
+  CALORIE_DEFICIT_PCT: "{{ .Values.complianceService.thresholds.calorieDeficitPct }}"
+  PATTERN_DAYS: "{{ .Values.complianceService.thresholds.patternDays }}"

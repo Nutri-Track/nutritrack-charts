@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.complianceService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.complianceService.name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.complianceService.port }}
+      targetPort: {{ .Values.complianceService.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Values.complianceService.name }}

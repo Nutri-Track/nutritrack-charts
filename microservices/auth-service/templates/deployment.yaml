@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.authService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.authService.name }}
+    app.kubernetes.io/name: {{ .Values.authService.name }}
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+spec:
+  replicas: {{ .Values.authService.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.authService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.authService.name }}
+        app.kubernetes.io/name: {{ .Values.authService.name }}
+        app.kubernetes.io/component: backend
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.authService.name }}
+          image: "{{ .Values.authService.image.repository }}:{{ .Values.authService.image.tag }}"
+          imagePullPolicy: {{ .Values.authService.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.authService.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.authService.name }}-config
+            - secretRef:
+                name: {{ .Values.authService.secretName }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.authService.healthPath }}
+              port: {{ .Values.authService.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.authService.healthPath }}
+              port: {{ .Values.authService.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 30

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: food-service
+description: Food Logging Service for Diet & Macro Compliance Tracker
+version: 1.0.0
+appVersion: "1.0.0"

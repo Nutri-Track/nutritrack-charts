@@ -1,0 +1,60 @@
+# =============================================================================
+# ConfigMap: PostgreSQL DB init script
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-init-script
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.postgresql.name }}
+    app.kubernetes.io/name: {{ .Values.postgresql.name }}
+    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+    app.kubernetes.io/component: db-init
+data:
+  init.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "[init] Starting PostgreSQL database and user bootstrap..."
+
+    create_db_and_user() {
+      local DB_NAME="$1"
+      local DB_USER="$2"
+      local DB_PASS="$3"
+
+      echo "[init] Processing database '${DB_NAME}' with user '${DB_USER}'..."
+
+      psql -v ON_ERROR_STOP=0 -U "$POSTGRES_USER" -h "$PGHOST" -p "$PGPORT" \
+        -c "CREATE DATABASE ${DB_NAME};" 2>/dev/null || echo "[init] Database '${DB_NAME}' already exists, skipping."
+
+      psql -v ON_ERROR_STOP=0 -U "$POSTGRES_USER" -h "$PGHOST" -p "$PGPORT" <<-EOSQL
+        DO \$\$
+        BEGIN
+          IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
+            CREATE ROLE ${DB_USER} WITH LOGIN PASSWORD '${DB_PASS}';
+            RAISE NOTICE 'Created user %', '${DB_USER}';
+          ELSE
+            ALTER ROLE ${DB_USER} WITH PASSWORD '${DB_PASS}';
+            RAISE NOTICE 'User % already exists, password updated', '${DB_USER}';
+          END IF;
+        END
+        \$\$;
+    EOSQL
+
+      psql -v ON_ERROR_STOP=0 -U "$POSTGRES_USER" -h "$PGHOST" -p "$PGPORT" \
+        -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};" 2>/dev/null
+      psql -v ON_ERROR_STOP=0 -U "$POSTGRES_USER" -h "$PGHOST" -p "$PGPORT" -d "${DB_NAME}" \
+        -c "GRANT ALL ON SCHEMA public TO ${DB_USER};" 2>/dev/null
+      psql -v ON_ERROR_STOP=0 -U "$POSTGRES_USER" -h "$PGHOST" -p "$PGPORT" -d "${DB_NAME}" \
+        -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${DB_USER};" 2>/dev/null
+
+      echo "[init] Database '${DB_NAME}' for user '${DB_USER}' is ready."
+    }
+
+    create_db_and_user "{{ .Values.authService.database.name }}" "{{ .Values.authService.database.username }}" "$AUTH_USER_PASSWORD"
+    create_db_and_user "{{ .Values.foodService.database.name }}" "{{ .Values.foodService.database.username }}" "$FOOD_USER_PASSWORD"
+    create_db_and_user "{{ .Values.macroService.database.name }}" "{{ .Values.macroService.database.username }}" "$MACRO_USER_PASSWORD"
+    create_db_and_user "{{ .Values.complianceService.database.name }}" "{{ .Values.complianceService.database.username }}" "$COMPLIANCE_USER_PASSWORD"
+
+    echo "[init] Bootstrap complete."
