@@ -5,7 +5,6 @@ global:
   appName: nutritrack
   namespace: nutritrack-dev
   imagePullSecrets: []
-
 gateway:
   name: nutritrack-gateway
   namespace: nutritrack-dev
@@ -13,7 +12,6 @@ gateway:
   listener:
     name: http
     port: 80
-
 postgresql:
   name: postgresql
   secretName: postgresql-secret
@@ -35,7 +33,6 @@ postgresql:
     limits:
       cpu: "1000m"
       memory: "1Gi"
-
 authService:
   name: auth-service
   secretName: auth-service-secret
@@ -50,7 +47,6 @@ authService:
   database:
     name: auth_db
     username: auth_user
-
 foodService:
   name: food-service
   secretName: food-service-secret
@@ -65,7 +61,6 @@ foodService:
   database:
     name: food_db
     username: food_user
-
 macroService:
   name: macro-service
   secretName: macro-service-secret
@@ -80,7 +75,6 @@ macroService:
   database:
     name: macro_db
     username: macro_user
-
 complianceService:
   name: compliance-service
   secretName: compliance-service-secret
@@ -100,13 +94,12 @@ complianceService:
     calorieSurplusPct: "120"
     calorieDeficitPct: "70"
     patternDays: "3"
-
 frontend:
   name: frontend
   routePrefix: /
   image:
     repository: nutritrack360/frontend
-    tag: latest
+    tag: dev-549dfe59e4b011b42718756f45f74b74e6185812
     pullPolicy: IfNotPresent
   replicas: 2
   port: 3000
@@ -116,7 +109,6 @@ frontend:
     minReplicas: 2
     maxReplicas: 5
     targetCPUUtilization: 70
-
 resources:
   requests:
     cpu: "100m"
