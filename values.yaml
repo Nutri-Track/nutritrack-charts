@@ -23,7 +23,7 @@ postgresql:
   port: 5432
   persistence:
     enabled: true
-    storageClass: ""
+    storageClass: mongo-nfs-storage
     accessModes:
       - ReadWriteOnce
     size: "10Gi"
