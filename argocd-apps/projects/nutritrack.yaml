@@ -3,6 +3,8 @@ kind: AppProject
 metadata:
   name: nutritrack
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
   description: NutriTrack Microservices Project
 spec:
   # Allow deployments to any namespace in the local cluster
