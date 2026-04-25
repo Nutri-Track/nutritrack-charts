@@ -21,9 +21,19 @@ postgresql:
     tag: "16-alpine"
     pullPolicy: IfNotPresent
   port: 5432
-  storage:
-    size: "10Gi"
+  persistence:
+    enabled: true
     storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: "10Gi"
+  networkPolicy:
+    enabled: true
+    allowedPodLabels:
+      - app: auth-service
+      - app: food-service
+      - app: macro-service
+      - app: compliance-service
   auth:
     username: postgres
   resources:
