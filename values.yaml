@@ -49,7 +49,7 @@ authService:
   routePrefix: /api/auth
   healthPath: /api/auth/health
   image:
-    repository: nutritrack360/auth-service
+    repository: nutritrack360/nutritrack-auth-service
     tag: dev-c0db5e99f80985dd14e5dde3c901056e5df3b118
     pullPolicy: IfNotPresent
   replicas: 1
@@ -63,7 +63,7 @@ foodService:
   routePrefix: /api/food
   healthPath: /api/food/health
   image:
-    repository: nutritrack360/food-service
+    repository: nutritrack360/nutritrack-food-service
     tag: dev-e645fcfe2e2013d4f76a920e95317d748a051e79
     pullPolicy: IfNotPresent
   replicas: 1
@@ -77,7 +77,7 @@ macroService:
   routePrefix: /api/macro
   healthPath: /api/macro/health
   image:
-    repository: nutritrack360/macro-service
+    repository: nutritrack360/nutritrack-macro-service
     tag: dev-a90d0cd108e576c109ff1de982dbe9a33896f41e
     pullPolicy: IfNotPresent
   replicas: 1
@@ -91,7 +91,7 @@ complianceService:
   routePrefix: /api/compliance
   healthPath: /api/compliance/health
   image:
-    repository: nutritrack360/compliance-service
+    repository: nutritrack360/nutritrack-compliance-service
     tag: dev-ee7557715d24a9c054c639bc4449bd0627d3db05
     pullPolicy: IfNotPresent
   replicas: 1
@@ -108,7 +108,7 @@ frontend:
   name: frontend
   routePrefix: /
   image:
-    repository: nutritrack360/frontend
+    repository: nutritrack360/nutritrack-frontend
     tag: dev-549dfe59e4b011b42718756f45f74b74e6185812
     pullPolicy: IfNotPresent
   replicas: 2
