@@ -68,7 +68,7 @@ macroService:
   healthPath: /api/macro/health
   image:
     repository: nutritrack360/macro-service
-    tag: latest
+    tag: dev-a90d0cd108e576c109ff1de982dbe9a33896f41e
     pullPolicy: IfNotPresent
   replicas: 1
   port: 8002
