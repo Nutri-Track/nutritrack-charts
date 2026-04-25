@@ -9,6 +9,7 @@ global:
 gateway:
   name: nutritrack-gateway
   namespace: nutritrack-dev
+  gatewayClassName: kgateway
   listener:
     name: http
     port: 80
