@@ -54,7 +54,7 @@ foodService:
   healthPath: /api/food/health
   image:
     repository: nutritrack360/food-service
-    tag: latest
+    tag: dev-e645fcfe2e2013d4f76a920e95317d748a051e79
     pullPolicy: IfNotPresent
   replicas: 1
   port: 8001
