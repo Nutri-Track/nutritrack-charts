@@ -6,7 +6,6 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
-  description: NutriTrack Microservices Project
   # Allow deployments to any namespace in the local cluster
   destinations:
     - namespace: '*'
