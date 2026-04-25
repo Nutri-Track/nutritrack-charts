@@ -82,7 +82,7 @@ complianceService:
   healthPath: /api/compliance/health
   image:
     repository: nutritrack360/compliance-service
-    tag: latest
+    tag: dev-ee7557715d24a9c054c639bc4449bd0627d3db05
     pullPolicy: IfNotPresent
   replicas: 1
   port: 8003
