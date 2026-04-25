@@ -40,7 +40,7 @@ authService:
   healthPath: /api/auth/health
   image:
     repository: nutritrack360/auth-service
-    tag: latest
+    tag: dev-c0db5e99f80985dd14e5dde3c901056e5df3b118
     pullPolicy: IfNotPresent
   replicas: 1
   port: 8000
