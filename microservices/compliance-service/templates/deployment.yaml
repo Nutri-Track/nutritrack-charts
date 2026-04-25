@@ -26,6 +26,23 @@ spec:
         - name: {{ . }}
         {{- end }}
       {{- end }}
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h {{ .Values.postgresql.primaryHost }} -p {{ .Values.postgresql.port }} -U {{ .Values.complianceService.database.username }}; do
+                echo "Waiting for database..."
+                sleep 2
+              done
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.secretName }}
+                  key: COMPLIANCE_USER_PASSWORD
       containers:
         - name: {{ .Values.complianceService.name }}
           image: "{{ .Values.complianceService.image.repository }}:{{ .Values.complianceService.image.tag }}"

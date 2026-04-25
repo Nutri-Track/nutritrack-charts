@@ -26,6 +26,23 @@ spec:
         - name: {{ . }}
         {{- end }}
       {{- end }}
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h {{ .Values.postgresql.primaryHost }} -p {{ .Values.postgresql.port }} -U {{ .Values.macroService.database.username }}; do
+                echo "Waiting for database..."
+                sleep 2
+              done
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.secretName }}
+                  key: MACRO_USER_PASSWORD
       containers:
         - name: {{ .Values.macroService.name }}
           image: "{{ .Values.macroService.image.repository }}:{{ .Values.macroService.image.tag }}"

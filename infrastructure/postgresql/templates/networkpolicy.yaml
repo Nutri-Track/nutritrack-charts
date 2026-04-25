@@ -15,7 +15,7 @@ spec:
   policyTypes:
     - Ingress
   ingress:
-    # Allow from FitForge backend microservices
+    # Allow from backend microservices
     - from:
         {{- range .Values.postgresql.networkPolicy.allowedPodLabels }}
         - podSelector:

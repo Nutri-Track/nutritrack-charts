@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nutritrack-app-of-apps
+  namespace: argocd
+spec:
+  project: nutritrack
+  source:
+    repoURL: https://github.com/Nutri-Track/nutritrack-charts.git
+    targetRevision: develop
+    path: argocd-apps
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

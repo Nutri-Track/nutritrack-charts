@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nutritrack-compliance-service
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: nutritrack
+  source:
+    repoURL: https://github.com/Nutri-Track/nutritrack-charts.git
+    targetRevision: develop
+    path: microservices/compliance-service
+    helm:
+      valueFiles:
+        - ../../values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nutritrack-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

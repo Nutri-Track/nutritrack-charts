@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: nutritrack
+  namespace: argocd
+  description: NutriTrack Microservices Project
+spec:
+  # Allow deployments to any namespace in the local cluster
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+  # Allow all cluster-scoped resources
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  # Allow all namespaced-scoped resources
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  # Allow all source repositories
+  sourceRepos:
+    - '*'
