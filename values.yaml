@@ -4,11 +4,11 @@
 global:
   appName: nutritrack
   namespace: nutritrack-dev
+  domain: dev.nutritrack360.in
   imagePullSecrets: []
 gateway:
   name: nutritrack-gateway
   namespace: nutritrack-dev
-  gatewayClassName: envoy-gateway
   listener:
     name: http
     port: 80

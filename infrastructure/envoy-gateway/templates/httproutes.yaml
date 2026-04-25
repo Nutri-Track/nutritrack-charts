@@ -1,99 +1,73 @@
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: frontend-route
-  namespace: {{ .Values.gateway.namespace | default .Values.global.namespace }}
+  name: nutritrack-apis
+  namespace: {{ .Values.global.namespace }}
   labels:
-    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+    app.kubernetes.io/part-of: nutritrack
 spec:
   parentRefs:
-    - name: {{ .Values.gateway.name }}
+  - name: nutritrack-gateway
+  hostnames:
+  - {{ .Values.global.domain | quote }}
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: {{ .Values.frontend.routePrefix }}
-      backendRefs:
-        - name: {{ .Values.frontend.name }}
-          port: {{ .Values.frontend.port }}
+  
+  # ── Auth Service ──────────────────────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/auth
+    backendRefs:
+    - name: auth-service
+      port: 8000
+
+  # ── Food Service ──────────────────────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/food
+    backendRefs:
+    - name: food-service
+      port: 8001
+
+  # ── Macro Service ─────────────────────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/macro
+    backendRefs:
+    - name: macro-service
+      port: 8002
+
+  # ── Compliance Service ────────────────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/compliance
+    backendRefs:
+    - name: compliance-service
+      port: 8003
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: auth-route
-  namespace: {{ .Values.gateway.namespace | default .Values.global.namespace }}
+  name: nutritrack-frontend
+  namespace: {{ .Values.global.namespace }}
   labels:
-    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+    app.kubernetes.io/part-of: nutritrack
 spec:
   parentRefs:
-    - name: {{ .Values.gateway.name }}
+  - name: nutritrack-gateway
+  hostnames:
+  - {{ .Values.global.domain | quote }}
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: {{ .Values.authService.routePrefix }}
-      backendRefs:
-        - name: {{ .Values.authService.name }}
-          port: {{ .Values.authService.port }}
-
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: food-route
-  namespace: {{ .Values.gateway.namespace | default .Values.global.namespace }}
-  labels:
-    app.kubernetes.io/part-of: {{ .Values.global.appName }}
-spec:
-  parentRefs:
-    - name: {{ .Values.gateway.name }}
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: {{ .Values.foodService.routePrefix }}
-      backendRefs:
-        - name: {{ .Values.foodService.name }}
-          port: {{ .Values.foodService.port }}
-
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: macro-route
-  namespace: {{ .Values.gateway.namespace | default .Values.global.namespace }}
-  labels:
-    app.kubernetes.io/part-of: {{ .Values.global.appName }}
-spec:
-  parentRefs:
-    - name: {{ .Values.gateway.name }}
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: {{ .Values.macroService.routePrefix }}
-      backendRefs:
-        - name: {{ .Values.macroService.name }}
-          port: {{ .Values.macroService.port }}
-
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: compliance-route
-  namespace: {{ .Values.gateway.namespace | default .Values.global.namespace }}
-  labels:
-    app.kubernetes.io/part-of: {{ .Values.global.appName }}
-spec:
-  parentRefs:
-    - name: {{ .Values.gateway.name }}
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: {{ .Values.complianceService.routePrefix }}
-      backendRefs:
-        - name: {{ .Values.complianceService.name }}
-          port: {{ .Values.complianceService.port }}
+  
+  # ── Frontend (Fallback / Root) ───────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: frontend
+      port: 3000
