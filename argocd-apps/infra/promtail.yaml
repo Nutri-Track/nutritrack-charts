@@ -15,7 +15,7 @@ spec:
       values: |
         config:
           clients:
-            - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+            - url: http://nutritrack-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
         resources:
           requests:
             cpu: 50m
