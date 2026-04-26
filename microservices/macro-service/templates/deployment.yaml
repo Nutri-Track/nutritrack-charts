@@ -41,18 +41,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgresql.secretName }}
                   key: MACRO_USER_PASSWORD
-      {{- if .Values.macroService.migration.enabled }}
-        - name: run-migrations
-          image: "{{ .Values.macroService.image.repository }}:{{ .Values.macroService.image.tag }}"
-          imagePullPolicy: {{ .Values.macroService.image.pullPolicy }}
-          command:
-            {{- toYaml .Values.macroService.migration.command | nindent 12 }}
-          envFrom:
-            - configMapRef:
-                name: {{ .Values.macroService.name }}-config
-            - secretRef:
-                name: {{ .Values.macroService.secretName }}
-      {{- end }}
       containers:
         - name: {{ .Values.macroService.name }}
           image: "{{ .Values.macroService.image.repository }}:{{ .Values.macroService.image.tag }}"

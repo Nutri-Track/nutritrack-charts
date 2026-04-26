@@ -55,9 +55,6 @@ authService:
   database:
     name: auth_db
     username: auth_user
-  migration:
-    enabled: true
-    command: ["sh", "-c", "alembic upgrade head"]
 foodService:
   name: food-service
   secretName: food-service-secret
@@ -72,9 +69,6 @@ foodService:
   database:
     name: food_db
     username: food_user
-  migration:
-    enabled: true
-    command: ["sh", "-c", "alembic upgrade head"]
 macroService:
   name: macro-service
   secretName: macro-service-secret
@@ -89,9 +83,6 @@ macroService:
   database:
     name: macro_db
     username: macro_user
-  migration:
-    enabled: true
-    command: ["sh", "-c", "alembic upgrade head"]
 complianceService:
   name: compliance-service
   secretName: compliance-service-secret
@@ -106,9 +97,6 @@ complianceService:
   database:
     name: compliance_db
     username: compliance_user
-  migration:
-    enabled: true
-    command: ["sh", "-c", "alembic upgrade head"]
   thresholds:
     proteinDeficiencyPct: "80"
     calorieSurplusPct: "120"
