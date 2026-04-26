@@ -33,6 +33,7 @@ spec:
                   period: 24h
           limits_config:
             retention_period: 72h        # 3 days retention
+            allow_structured_metadata: false
 
         singleBinary:
           replicas: 1
