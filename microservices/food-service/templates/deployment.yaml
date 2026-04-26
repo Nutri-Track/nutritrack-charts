@@ -41,6 +41,15 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgresql.secretName }}
                   key: FOOD_USER_PASSWORD
+        - name: run-migrations
+          image: "{{ .Values.foodService.image.repository }}:{{ .Values.foodService.image.tag }}"
+          imagePullPolicy: {{ .Values.foodService.image.pullPolicy }}
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.foodService.name }}-config
+            - secretRef:
+                name: {{ .Values.foodService.secretName }}
       containers:
         - name: {{ .Values.foodService.name }}
           image: "{{ .Values.foodService.image.repository }}:{{ .Values.foodService.image.tag }}"
