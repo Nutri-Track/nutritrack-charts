@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  namespace: security
+  labels:
+    app.kubernetes.io/part-of: nutritrack
+data:
+  realm.json: |
+    {
+      "id": "nutritrack",
+      "realm": "nutritrack",
+      "displayName": "NutriTrack SSO",
+      "enabled": true,
+      "sslRequired": "external",
+      "registrationAllowed": false,
+      "clients": [
+        {
+          "clientId": "grafana",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "grafana-client-secret-here",
+          "redirectUris": [
+            "http://grafana.dev.nutritrack360.in/login/generic_oauth"
+          ],
+          "webOrigins": ["+"],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": true,
+          "publicClient": false,
+          "protocol": "openid-connect",
+          "fullScopeAllowed": true
+        },
+        {
+          "clientId": "argocd",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "argocd-client-secret-here",
+          "redirectUris": [
+            "https://argocd.dev.nutritrack360.in/auth/callback"
+          ],
+          "webOrigins": ["+"],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": true,
+          "publicClient": false,
+          "protocol": "openid-connect",
+          "fullScopeAllowed": true,
+          "protocolMappers": [
+            {
+              "name": "groups",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-group-membership-mapper",
+              "consentRequired": false,
+              "config": {
+                "full.path": "false",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "groups",
+                "userinfo.token.claim": "true"
+              }
+            }
+          ]
+        },
+        {
+          "clientId": "headlamp",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "headlamp-client-secret-here",
+          "redirectUris": [
+            "http://headlamp.dev.nutritrack360.in/oidc-callback"
+          ],
+          "webOrigins": ["+"],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": true,
+          "publicClient": false,
+          "protocol": "openid-connect",
+          "fullScopeAllowed": true
+        }
+      ]
+    }

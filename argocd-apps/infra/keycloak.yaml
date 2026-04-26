@@ -1,0 +1,62 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nutritrack-keycloak
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: nutritrack
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: keycloak
+    targetRevision: 21.4.2
+    helm:
+      values: |
+        auth:
+          adminUser: admin
+          adminPassword: nutritrack-admin
+        
+        # OIDC required settings
+        production: true
+        proxy: edge
+        
+        # Configure Keycloak to know its public URL
+        extraEnvVars:
+          - name: KC_HOSTNAME
+            value: keycloak.dev.nutritrack360.in
+          - name: KC_HOSTNAME_STRICT
+            value: "false"
+          - name: KC_HOSTNAME_STRICT_HTTPS
+            value: "false"
+          - name: KC_HTTP_ENABLED
+            value: "true"
+          - name: KC_PROXY
+            value: "edge"
+            
+        # Automatically Import NutriTrack Realm Configuration
+        keycloakConfigCli:
+          enabled: true
+          configuration:
+            configmap: keycloak-realm-config
+        
+        
+        postgresql:
+          enabled: true
+          auth:
+            postgresPassword: postgres-password
+            username: keycloak
+            password: keycloak-password
+            database: keycloak
+          primary:
+            persistence:
+              enabled: true
+              storageClass: mongo-nfs-storage
+              size: 5Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: security
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

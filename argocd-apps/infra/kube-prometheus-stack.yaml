@@ -39,6 +39,26 @@ spec:
               label: grafana_datasource
               labelValue: "1"
               searchNamespace: ALL
+          
+          # Add OIDC Keycloak configuration
+          grafana.ini:
+            server:
+              root_url: http://grafana.dev.nutritrack360.in
+            auth.generic_oauth:
+              enabled: true
+              name: Keycloak
+              allow_sign_up: true
+              client_id: grafana
+              client_secret: "${GRAFANA_OAUTH_CLIENT_SECRET}"
+              scopes: openid profile email roles
+              auth_url: http://keycloak.dev.nutritrack360.in/realms/nutritrack/protocol/openid-connect/auth
+              token_url: http://keycloak.dev.nutritrack360.in/realms/nutritrack/protocol/openid-connect/token
+              api_url: http://keycloak.dev.nutritrack360.in/realms/nutritrack/protocol/openid-connect/userinfo
+              role_attribute_path: contains(realm_access.roles[*], 'admin') && 'Admin' || contains(realm_access.roles[*], 'editor') && 'Editor' || 'Viewer'
+          
+          # We'll need extraEnv for the client_secret
+          env:
+            GRAFANA_OAUTH_CLIENT_SECRET: "grafana-client-secret-here" # Replace with actual secret in production
         # We will create the ConfigMap separately for better reliability
 
         # ── Prometheus ──────────────────────────────────────────────

@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nutritrack-keycloak-realm
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1" # Ensure this is deployed before keycloak
+spec:
+  project: nutritrack
+  source:
+    repoURL: https://github.com/Nutri-Track/nutritrack-charts.git
+    targetRevision: develop
+    path: infrastructure/keycloak-realm
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: security
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
