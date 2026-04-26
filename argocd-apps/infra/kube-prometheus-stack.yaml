@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nutritrack-monitoring
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: nutritrack
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 72.6.2
+    helm:
+      values: |
+        # ── Grafana ─────────────────────────────────────────────────
+        grafana:
+          adminPassword: nutritrack-admin
+          persistence:
+            enabled: true
+            storageClassName: mongo-nfs-storage
+            size: 1Gi
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+          sidecar:
+            datasources:
+              enabled: true
+            dashboards:
+              enabled: true
+          # Pre-configure Loki as a datasource
+          additionalDataSources:
+            - name: Loki
+              type: loki
+              url: http://loki.monitoring.svc.cluster.local:3100
+              access: proxy
+              isDefault: false
+
+        # ── Prometheus ──────────────────────────────────────────────
+        prometheus:
+          prometheusSpec:
+            retention: 3d
+            retentionSize: "4GB"
+            resources:
+              requests:
+                cpu: 200m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: mongo-nfs-storage
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 5Gi
+
+        # ── Alertmanager ────────────────────────────────────────────
+        alertmanager:
+          enabled: true
+          alertmanagerSpec:
+            retention: 72h
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
+
+        # ── Node Exporter ───────────────────────────────────────────
+        nodeExporter:
+          enabled: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+
+        # ── Kube State Metrics ──────────────────────────────────────
+        kubeStateMetrics:
+          enabled: true
+
+        # ── Disable components not needed on test cluster ───────────
+        kubeProxy:
+          enabled: false
+        kubeEtcd:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
