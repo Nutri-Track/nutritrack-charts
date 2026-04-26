@@ -41,15 +41,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgresql.secretName }}
                   key: COMPLIANCE_USER_PASSWORD
-        - name: run-migrations
-          image: "{{ .Values.complianceService.image.repository }}:{{ .Values.complianceService.image.tag }}"
-          imagePullPolicy: {{ .Values.complianceService.image.pullPolicy }}
-          command: ["alembic", "upgrade", "head"]
-          envFrom:
-            - configMapRef:
-                name: {{ .Values.complianceService.name }}-config
-            - secretRef:
-                name: {{ .Values.complianceService.secretName }}
       containers:
         - name: {{ .Values.complianceService.name }}
           image: "{{ .Values.complianceService.image.repository }}:{{ .Values.complianceService.image.tag }}"

@@ -41,15 +41,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgresql.secretName }}
                   key: AUTH_USER_PASSWORD
-        - name: run-migrations
-          image: "{{ .Values.authService.image.repository }}:{{ .Values.authService.image.tag }}"
-          imagePullPolicy: {{ .Values.authService.image.pullPolicy }}
-          command: ["alembic", "upgrade", "head"]
-          envFrom:
-            - configMapRef:
-                name: {{ .Values.authService.name }}-config
-            - secretRef:
-                name: {{ .Values.authService.secretName }}
       containers:
         - name: {{ .Values.authService.name }}
           image: "{{ .Values.authService.image.repository }}:{{ .Values.authService.image.tag }}"
