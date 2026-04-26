@@ -1,6 +1,3 @@
-# Global values for the NutriTrack platform deployment repo.
-# Update image repositories/tags here and manage secret data in secrets/*.yaml.
-
 global:
   appName: nutritrack
   namespace: nutritrack-dev
