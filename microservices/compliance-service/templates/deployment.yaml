@@ -41,6 +41,18 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgresql.secretName }}
                   key: COMPLIANCE_USER_PASSWORD
+      {{- if .Values.complianceService.migration.enabled }}
+        - name: run-migrations
+          image: "{{ .Values.complianceService.image.repository }}:{{ .Values.complianceService.image.tag }}"
+          imagePullPolicy: {{ .Values.complianceService.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.complianceService.migration.command | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.complianceService.name }}-config
+            - secretRef:
+                name: {{ .Values.complianceService.secretName }}
+      {{- end }}
       containers:
         - name: {{ .Values.complianceService.name }}
           image: "{{ .Values.complianceService.image.repository }}:{{ .Values.complianceService.image.tag }}"

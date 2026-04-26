@@ -41,6 +41,18 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgresql.secretName }}
                   key: AUTH_USER_PASSWORD
+      {{- if .Values.authService.migration.enabled }}
+        - name: run-migrations
+          image: "{{ .Values.authService.image.repository }}:{{ .Values.authService.image.tag }}"
+          imagePullPolicy: {{ .Values.authService.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.authService.migration.command | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.authService.name }}-config
+            - secretRef:
+                name: {{ .Values.authService.secretName }}
+      {{- end }}
       containers:
         - name: {{ .Values.authService.name }}
           image: "{{ .Values.authService.image.repository }}:{{ .Values.authService.image.tag }}"
