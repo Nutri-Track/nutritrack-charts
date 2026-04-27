@@ -1,0 +1,20 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: keycloak-route
+  namespace: nutritrack-dev
+spec:
+  parentRefs:
+    - name: nutritrack-gateway
+      namespace: nutritrack-dev
+  hostnames:
+    - "keycloak.dev.nutritrack360.in"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        # The Keycloak Operator automatically creates a service named <cr-name>-service
+        - name: nutritrack-keycloak-service
+          port: 8080

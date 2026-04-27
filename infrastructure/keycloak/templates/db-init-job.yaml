@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-db-init
+  # We run this in nutritrack-dev so it can access the postgresql-secret
+  namespace: nutritrack-dev 
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: db-init
+          image: postgres:16-alpine
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-secret
+                  key: POSTGRES_PASSWORD
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-secret
+                  key: POSTGRES_USER
+            - name: PGHOST
+              value: postgresql-0.postgresql.nutritrack-dev.svc.cluster.local
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Initializing Keycloak Database..."
+              
+              # Check if role exists, if not create it
+              psql -tc "SELECT 1 FROM pg_roles WHERE rolname='keycloak';" | grep -q 1 || \
+              psql -c "CREATE USER keycloak WITH PASSWORD 'keycloak_secure_pass_2026';"
+              
+              # Check if DB exists, if not create it
+              psql -tc "SELECT 1 FROM pg_database WHERE datname='keycloak_db';" | grep -q 1 || \
+              psql -c "CREATE DATABASE keycloak_db OWNER keycloak;"
+              
+              # Grant privileges
+              psql -c "GRANT ALL PRIVILEGES ON DATABASE keycloak_db TO keycloak;"
+              
+              echo "Database initialization complete!"

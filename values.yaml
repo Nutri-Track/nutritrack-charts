@@ -32,6 +32,7 @@ postgresql:
       - app: food-service
       - app: macro-service
       - app: compliance-service
+      - app: keycloak
   auth:
     username: postgres
   resources:
