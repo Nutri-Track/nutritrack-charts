@@ -3,9 +3,6 @@ kind: HTTPRoute
 metadata:
   name: keycloak-route
   namespace: keycloak
-  labels:
-    app.kubernetes.io/name: keycloak
-    app.kubernetes.io/part-of: nutritrack
 spec:
   parentRefs:
     - name: nutritrack-gateway
@@ -18,5 +15,6 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: keycloak
+        # The Keycloak Operator automatically creates a service named <cr-name>-service
+        - name: nutritrack-keycloak-service
           port: 8080

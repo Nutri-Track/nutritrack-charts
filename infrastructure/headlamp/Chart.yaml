@@ -1,6 +1,6 @@
 apiVersion: v2
 name: headlamp
-description: Headlamp Kubernetes Dashboard for NutriTrack
+description: Headlamp Dashboard integrated with Keycloak OIDC
 type: application
 version: 1.0.0
 appVersion: "0.25.0"

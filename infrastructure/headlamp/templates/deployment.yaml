@@ -3,21 +3,17 @@ kind: Deployment
 metadata:
   name: headlamp
   namespace: headlamp
-  labels:
-    app: headlamp
-    app.kubernetes.io/name: headlamp
-    app.kubernetes.io/part-of: nutritrack
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: headlamp
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
         app: headlamp
-        app.kubernetes.io/name: headlamp
-        app.kubernetes.io/part-of: nutritrack
     spec:
       serviceAccountName: headlamp
       containers:
@@ -25,27 +21,27 @@ spec:
           image: ghcr.io/headlamp-k8s/headlamp:v0.25.0
           args:
             - "-in-cluster"
-            - "-plugins-dir=/headlamp/plugins"
+            # OIDC Integration!
+            - "-oidc-client-id=headlamp"
+            - "-oidc-client-secret=$(OIDC_CLIENT_SECRET)"
+            # This points exactly to the Realm created by the Operator
+            - "-oidc-idp-issuer-url=http://keycloak.dev.nutritrack360.in/realms/nutritrack"
+            - "-oidc-scopes=openid,profile,email"
+          env:
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: headlamp-oidc-secret
+                  key: clientSecret
           ports:
-            - name: http
-              containerPort: 4466
-              protocol: TCP
+            - containerPort: 4466
           readinessProbe:
             httpGet:
               path: /
               port: 4466
             initialDelaySeconds: 10
-            periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /
               port: 4466
-            initialDelaySeconds: 15
-            periodSeconds: 20
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "256Mi"
+            initialDelaySeconds: 20

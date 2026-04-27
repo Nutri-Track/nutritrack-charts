@@ -1,0 +1,29 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: nutritrack-keycloak
+  namespace: keycloak
+  labels:
+    app: sso
+spec:
+  instances: 1
+  db:
+    vendor: postgres
+    host: postgresql.nutritrack-dev.svc.cluster.local
+    usernameSecret:
+      name: keycloak-db-secret
+      key: username
+    passwordSecret:
+      name: keycloak-db-secret
+      key: password
+    database: keycloak_db
+  http:
+    httpEnabled: true
+  hostname:
+    hostname: keycloak.dev.nutritrack360.in
+    strict: false
+    strictHttps: false
+  proxy:
+    headers: xforwarded
+  ingress:
+    enabled: false # We use HTTPRoute (Gateway API) instead

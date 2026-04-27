@@ -1,23 +1,13 @@
-# ── ServiceAccount ────────────────────────────────────────────────────────────
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: headlamp
   namespace: headlamp
-  labels:
-    app: headlamp
-    app.kubernetes.io/name: headlamp
-    app.kubernetes.io/part-of: nutritrack
 ---
-# ── ClusterRoleBinding (full cluster access for dashboard) ────────────────────
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: headlamp-cluster-admin
-  labels:
-    app: headlamp
-    app.kubernetes.io/name: headlamp
-    app.kubernetes.io/part-of: nutritrack
+  name: headlamp-admin
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
