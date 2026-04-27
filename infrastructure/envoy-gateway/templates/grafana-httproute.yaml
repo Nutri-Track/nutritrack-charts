@@ -10,7 +10,7 @@ spec:
   - name: {{ .Values.gateway.name }}
     namespace: {{ .Values.global.namespace }}
   hostnames:
-  - "grafana.dev.nutritrack360.in"
+  - "grafana.nutritrack360.in"
   rules:
   - matches:
     - path:

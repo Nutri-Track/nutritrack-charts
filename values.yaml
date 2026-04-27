@@ -1,11 +1,11 @@
 global:
   appName: nutritrack
-  namespace: nutritrack-dev
-  domain: dev.nutritrack360.in
+  namespace: nutritrack
+  domain: nutritrack360.in
   imagePullSecrets: []
 gateway:
   name: nutritrack-gateway
-  namespace: nutritrack-dev
+  namespace: nutritrack
   gatewayClassName: kgateway
   listener:
     name: http

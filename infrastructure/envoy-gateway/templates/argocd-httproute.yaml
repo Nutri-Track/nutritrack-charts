@@ -10,7 +10,7 @@ spec:
   - name: nutritrack-gateway
     namespace: {{ .Values.global.namespace }}
   hostnames:
-  - "argocd.dev.nutritrack360.in"
+  - "argocd.nutritrack360.in"
   rules:
   - matches:
     - path:

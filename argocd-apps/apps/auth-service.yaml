@@ -9,14 +9,14 @@ spec:
   project: nutritrack
   source:
     repoURL: https://github.com/Nutri-Track/nutritrack-charts.git
-    targetRevision: develop
+    targetRevision: main
     path: microservices/auth-service
     helm:
       valueFiles:
         - ../../values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: nutritrack-dev
+    namespace: nutritrack
   syncPolicy:
     automated:
       prune: true

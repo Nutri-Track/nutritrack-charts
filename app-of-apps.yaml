@@ -7,7 +7,7 @@ spec:
   project: nutritrack
   source:
     repoURL: https://github.com/Nutri-Track/nutritrack-charts.git
-    targetRevision: develop
+    targetRevision: main
     path: argocd-apps
     directory:
       recurse: true
