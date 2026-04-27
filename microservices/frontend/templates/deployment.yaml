@@ -22,9 +22,7 @@ spec:
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
-        {{- range . }}
-        - name: {{ . }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
         - name: {{ .Values.frontend.name }}

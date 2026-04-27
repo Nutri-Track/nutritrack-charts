@@ -69,15 +69,25 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 5
+      {{- if not .Values.postgresql.persistence.enabled }}
+      # persistence disabled — emptyDir (dev/test only)
+      volumes:
+        - name: data
+          emptyDir: {}
+      {{- end }}
+  {{- if .Values.postgresql.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
         name: data
+        labels:
+          app: {{ .Values.postgresql.name }}
+          app.kubernetes.io/part-of: {{ .Values.global.appName }}
       spec:
-        accessModes:
-          - ReadWriteOnce
-        {{- if .Values.postgresql.storage.storageClass }}
-        storageClassName: {{ .Values.postgresql.storage.storageClass }}
+        accessModes: {{ toYaml .Values.postgresql.persistence.accessModes | nindent 10 }}
+        {{- if .Values.postgresql.persistence.storageClass }}
+        storageClassName: {{ .Values.postgresql.persistence.storageClass }}
         {{- end }}
         resources:
           requests:
-            storage: {{ .Values.postgresql.storage.size }}
+            storage: {{ .Values.postgresql.persistence.size }}
+  {{- end }}

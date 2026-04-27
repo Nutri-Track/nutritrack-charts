@@ -1,0 +1,34 @@
+{{- if .Values.postgresql.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.postgresql.name }}-network-policy
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.postgresql.name }}
+    app.kubernetes.io/name: {{ .Values.postgresql.name }}
+    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.postgresql.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from backend microservices
+    - from:
+        {{- range .Values.postgresql.networkPolicy.allowedPodLabels }}
+        - podSelector:
+            matchLabels:
+              {{- range $key, $value := . }}
+              {{ $key }}: {{ $value }}
+              {{- end }}
+        {{- end }}
+        # Allow from the db-init Job
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: db-init
+      ports:
+        - port: {{ .Values.postgresql.port }}
+          protocol: TCP
+{{- end }}

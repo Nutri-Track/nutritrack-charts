@@ -22,10 +22,25 @@ spec:
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
-        {{- range . }}
-        - name: {{ . }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h {{ .Values.postgresql.primaryHost }} -p {{ .Values.postgresql.port }} -U {{ .Values.foodService.database.username }}; do
+                echo "Waiting for database..."
+                sleep 2
+              done
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.secretName }}
+                  key: FOOD_USER_PASSWORD
       containers:
         - name: {{ .Values.foodService.name }}
           image: "{{ .Values.foodService.image.repository }}:{{ .Values.foodService.image.tag }}"
