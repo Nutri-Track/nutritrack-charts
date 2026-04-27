@@ -1,121 +1,207 @@
-# Flawless NutriTrack IAM & Dashboard Setup (Operator & GitOps)
+# NutriTrack IAM & Dashboard Setup (Keycloak Operator + Manual OIDC)
 
-> **Goal:** Deploy Keycloak connected to PostgreSQL with Automated OIDC Setup for Headlamp using the GitOps pattern.
+> **Goal:** Deploy Keycloak (via the Operator) connected to PostgreSQL, then manually configure OIDC for Headlamp through the Keycloak Admin UI.
 
-This guide explains the perfect architecture we've built using the **Keycloak Operator**. Everything is fully automated:
-- **Persistence:** Keycloak connects to your existing PostgreSQL (`postgresql-0`).
-- **DB Init:** A Kubernetes Job automatically creates the `keycloak` Postgres user and database.
-- **SSO Setup:** A `KeycloakRealmImport` automatically provisions the `nutritrack` Realm, the Admin user, and the OIDC Client for Headlamp.
-- **Zero Configuration:** Headlamp boots up and instantly logs you in securely via Keycloak.
+## Architecture Overview
+
+- **Keycloak** runs in `nutritrack-dev` (same namespace as PostgreSQL) so the NetworkPolicy allows database access automatically.
+- **Headlamp** runs in its own `headlamp` namespace.
+- The **Keycloak Operator** manages the Keycloak pod, database migrations, and lifecycle.
+- OIDC clients and realms are configured **manually via the Keycloak Admin Console** for full control.
 
 ---
 
-## Step 1: Install the Keycloak Operator (Manual Prerequisite)
+## Step 1: Install the Keycloak Operator (One-Time Prerequisite)
 
-Because you are using ArgoCD to manage Custom Resources (like `kind: Keycloak`), the Kubernetes cluster needs to "learn" what a Keycloak resource is *before* ArgoCD tries to deploy it. 
-
-You must install the Keycloak Operator **cluster-wide** manually just once:
+The cluster needs the Keycloak CRDs before ArgoCD can deploy `kind: Keycloak` resources.
 
 ```bash
-# 1. Install the Custom Resource Definitions (CRDs)
+# Install the CRDs
 kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/25.0.0/kubernetes/keycloaks.k8s.keycloak.org-v1.yml
 kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/25.0.0/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
 
-# 2. Deploy the Operator
+# Deploy the Operator
 kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/25.0.0/kubernetes/kubernetes.yml
 ```
 
 Verify the operator is running:
 ```bash
-kubectl get pods -n default -l app=keycloak-operator
+kubectl get pods -A -l app=keycloak-operator
 ```
 
 ---
 
-## Step 2: Push Your Code to Git
+## Step 2: Push Code & Let ArgoCD Deploy
 
-We have created the ArgoCD Application definitions (`argocd-apps/infra/keycloak.yaml` and `headlamp.yaml`) and the infrastructure charts. 
+Push to `develop`. ArgoCD will automatically:
 
-1. Add everything to Git.
-2. Commit: `git commit -m "feat: Perfect Operator-based Keycloak & Headlamp"`
-3. Push to `develop`.
+1. **Run the DB Init Job** — Creates the `keycloak` Postgres user and `keycloak_db` database inside your existing PostgreSQL.
+2. **Deploy Keycloak** — The Operator reads the `Keycloak` CR and spins up a fully configured Keycloak instance connected to Postgres.
+3. **Deploy Headlamp** — Deploys the Kubernetes dashboard (OIDC integration is configured but won't work until you complete Step 3).
 
----
+Monitor the deployment:
+```bash
+# Watch Keycloak pod
+kubectl get pods -n nutritrack-dev -l app=keycloak -w
 
-## Step 3: Watch ArgoCD Do the Magic
-
-Because your `app-of-apps` monitors `argocd-apps/`, ArgoCD will automatically pick up the new Keycloak and Headlamp applications!
-
-Here is exactly what ArgoCD will do in order:
-
-### 1. Database Initialization
-ArgoCD deploys the `keycloak-db-init` Job.
-- It spins up a temporary Alpine container.
-- It connects to `postgresql-0.postgresql.nutritrack-dev`.
-- It safely runs `CREATE USER keycloak` and `CREATE DATABASE keycloak_db`.
-- *Result:* Postgres is fully prepared.
-
-### 2. The Keycloak Custom Resource
-ArgoCD deploys the `Keycloak` YAML into `nutritrack-dev`.
-- The Keycloak Operator notices this.
-- The Operator spins up Keycloak `25.0` in the same namespace as PostgreSQL. Because we added `- app: keycloak` to `values.yaml`, the **existing PostgreSQL NetworkPolicy automatically allows Keycloak to connect** without any manual overrides!
-- It configures the JDBC connection, sets up the `edge` proxy, and binds `keycloak.dev.nutritrack360.in`.
-- *Result:* Keycloak is live on Postgres!
-
-### 3. The Realm Import Custom Resource
-ArgoCD deploys the `KeycloakRealmImport` YAML.
-- The Keycloak Operator instantly configures the `nutritrack` realm.
-- It creates the `nutritrack-admin` user.
-- It creates the `headlamp` OIDC Client with the secret `headlamp-oidc-secure-secret-2026`.
-- *Result:* Zero manual UI clicking required!
-
-### 4. Headlamp Deployment
-ArgoCD deploys Headlamp into the `headlamp` namespace.
-- It passes the OIDC Client Secret directly into the pod.
-- *Result:* Headlamp is locked behind SSO.
+# Watch Headlamp pod
+kubectl get pods -n headlamp -l app=headlamp -w
+```
 
 ---
 
-## Step 4: Access Your Apps
+## Step 3: Configure OIDC in Keycloak Admin UI
 
-Ensure your DNS is set to point to your Envoy Gateway IP:
-- `keycloak.dev.nutritrack360.in`
-- `headlamp.dev.nutritrack360.in`
+Once Keycloak is running and accessible at `http://keycloak.dev.nutritrack360.in`, follow these steps:
+
+### 3.1 — Log into the Admin Console
+
+1. Go to `http://keycloak.dev.nutritrack360.in/admin`
+2. Log in with the **Master Admin** credentials:
+   - **Username:** `admin`
+   - **Password:** *(the password you set in `keycloak-admin-secret`)*
+
+### 3.2 — Create the `nutritrack` Realm
+
+1. Click the dropdown in the top-left corner (it says **"master"**).
+2. Click **"Create realm"**.
+3. Set:
+   - **Realm name:** `nutritrack`
+   - **Enabled:** ON
+4. Click **"Create"**.
+
+### 3.3 — Create the Headlamp OIDC Client
+
+1. In the `nutritrack` realm, go to **Clients** → **Create client**.
+2. **General Settings:**
+   - **Client type:** OpenID Connect
+   - **Client ID:** `headlamp`
+   - **Name:** Headlamp Kubernetes Dashboard
+3. Click **Next**.
+4. **Capability Config:**
+   - **Client authentication:** ON (this makes it a "confidential" client)
+   - **Standard flow:** ON
+   - **Direct access grants:** ON
+5. Click **Next**.
+6. **Login Settings:**
+   - **Root URL:** `http://headlamp.dev.nutritrack360.in`
+   - **Valid redirect URIs:** `http://headlamp.dev.nutritrack360.in/*`
+   - **Web origins:** `http://headlamp.dev.nutritrack360.in`
+7. Click **Save**.
+
+### 3.4 — Copy the Client Secret
+
+1. Go to the **Credentials** tab of the `headlamp` client.
+2. Copy the **Client secret** value.
+3. You will need this for the Headlamp deployment (see Step 4).
+
+### 3.5 — Create a User
+
+1. Go to **Users** → **Add user**.
+2. Set:
+   - **Username:** `nutritrack-admin`
+   - **Email:** `admin@nutritrack360.in`
+   - **Email verified:** ON
+   - **First name:** Admin
+   - **Last name:** User
+3. Click **Create**.
+4. Go to the **Credentials** tab → **Set password**.
+5. Enter a password, set **Temporary** to OFF, and click **Save**.
+
+---
+
+## Step 4: Update Headlamp with the OIDC Secret
+
+After you copy the **Client secret** from Step 3.4, you need to update the Headlamp secret in your cluster.
+
+### Option A: Update the SealedSecret (GitOps way)
+
+1. Create a new plain secret file locally (do NOT commit this):
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: headlamp-oidc-secret
+     namespace: headlamp
+   type: Opaque
+   stringData:
+     clientID: "headlamp"
+     clientSecret: "<PASTE_THE_SECRET_FROM_STEP_3.4>"
+   ```
+2. Seal it:
+   ```bash
+   kubeseal --format=yaml < secret.yaml > infrastructure/headlamp/templates/sealed-secret.yaml
+   ```
+3. Commit and push the updated `sealed-secret.yaml`.
+4. Delete the plain `secret.yaml` file.
+
+### Option B: Quick Manual Override (for testing)
+
+```bash
+kubectl delete secret headlamp-oidc-secret -n headlamp
+kubectl create secret generic headlamp-oidc-secret \
+  -n headlamp \
+  --from-literal=clientID=headlamp \
+  --from-literal=clientSecret="<PASTE_THE_SECRET_FROM_STEP_3.4>"
+
+# Restart Headlamp to pick up the new secret
+kubectl rollout restart deployment/headlamp -n headlamp
+```
+
+---
+
+## Step 5: Access Your Apps
+
+### 🔑 Keycloak Admin Console
+- **URL:** `http://keycloak.dev.nutritrack360.in/admin`
+- **Realm:** Switch to `nutritrack` after login
 
 ### 🛡️ Headlamp Dashboard
 1. Go to `http://headlamp.dev.nutritrack360.in`
-2. Click **"Sign in with OIDC"**.
-3. You will be redirected to Keycloak.
-4. Log in with:
-   - **Username:** `nutritrack-admin`
-   - **Password:** `admin123`
-5. You are instantly logged into Headlamp as an Admin!
+2. Click **"Sign in with OIDC"**
+3. You will be redirected to Keycloak
+4. Log in with the user you created in Step 3.5
+5. You are now logged into Headlamp via SSO!
 
-### 🔑 Keycloak Admin Console
-If you ever need to manually tweak Keycloak:
-1. Go to `http://keycloak.dev.nutritrack360.in/admin`
-2. Log in with the Master Admin:
-   - **Username:** `admin`
-   - **Password:** `admin_secure_password`
-   *(This was defined in the `keycloak-admin-secret`)*
+---
+
+## File Structure
+
+```
+infrastructure/
+├── keycloak/
+│   ├── Chart.yaml
+│   └── templates/
+│       ├── sealed-secrets.yaml    # DB + Admin credentials (encrypted)
+│       ├── keycloak-cr.yaml       # Keycloak Operator Custom Resource
+│       ├── httproute.yaml         # Envoy Gateway routing
+│       └── db-init-job.yaml       # Auto-creates keycloak_db in Postgres
+├── headlamp/
+│   ├── Chart.yaml
+│   └── templates/
+│       ├── namespace.yaml
+│       ├── rbac.yaml              # ServiceAccount + ClusterRoleBinding
+│       ├── sealed-secret.yaml     # OIDC client credentials (encrypted)
+│       ├── deployment.yaml        # Headlamp with OIDC args
+│       └── service-route.yaml     # Service + HTTPRoute
+```
 
 ---
 
 ## Troubleshooting
 
-**What if ArgoCD says the Keycloak CR is "Out of Sync"?**
-Occasionally, Operators modify their own Custom Resources (adding status fields). If ArgoCD complains, you can click "Sync" or ensure `ServerSideApply=true` is set (which we did!).
+**ArgoCD says Keycloak CR is "Out of Sync"**
+The Operator adds status fields to the CR. This is normal. Ensure `ServerSideApply=true` is set in your ArgoCD Application (it is).
 
-**What if the Database Job fails?**
-Check the job logs: `kubectl logs -n nutritrack-dev job/keycloak-db-init`. It expects the `postgresql-secret` to be present in `nutritrack-dev` with the `POSTGRES_PASSWORD` key.
-
-**How is the "Cookie not found" fixed here?**
-In the Operator CR, we set:
-```yaml
-hostname:
-  strict: false
-  strictHttps: false
-proxy:
-  headers: xforwarded
+**Database Job fails**
+Check the job logs:
+```bash
+kubectl logs -n nutritrack-dev job/keycloak-db-init
 ```
-This forces Keycloak 25.0 to accept HTTP from Envoy Gateway perfectly.
+It expects the `postgresql-secret` to exist in `nutritrack-dev` with a `POSTGRES_PASSWORD` key.
+
+**"Cookie not found" error**
+The Keycloak CR is configured with `hostname.strict: false`, `hostname.strictHttps: false`, and `proxy.headers: xforwarded`. This ensures cookies work correctly behind the Envoy Gateway over HTTP.
+
+**"No healthy upstream" error**
+This means Keycloak hasn't passed its readiness probe yet. Wait 60-90 seconds for it to fully boot and initialize the database schema.
