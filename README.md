@@ -39,4 +39,4 @@ When you split `repo-ready/` into independent repositories, keep this repo as th
 
 The deploy script creates the namespace, applies the plain Secret manifests, installs PostgreSQL, deploys all backend services, deploys the frontend, and then installs the Envoy Gateway routing resources.
 
-For Kubernetes, the service Secret examples use the PostgreSQL StatefulSet primary host `postgresql-0.postgresql` because PostgreSQL now runs behind a headless Service.
+For Kubernetes, the service Secret examples use the PostgreSQL StatefulSet primary host `postgresql-0.postgresql` because PostgreSQL now runs behind a headless Service..
