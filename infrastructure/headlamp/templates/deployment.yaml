@@ -1,64 +1,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.headlamp.name }}
-  namespace: {{ .Values.headlamp.namespace }}
+  name: headlamp
+  namespace: headlamp
   labels:
-    app: {{ .Values.headlamp.name }}
-    app.kubernetes.io/name: {{ .Values.headlamp.name }}
-    app.kubernetes.io/component: dashboard
-    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+    app: headlamp
+    app.kubernetes.io/name: headlamp
+    app.kubernetes.io/part-of: nutritrack
 spec:
-  replicas: {{ .Values.headlamp.replicas }}
+  replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.headlamp.name }}
+      app: headlamp
   template:
     metadata:
       labels:
-        app: {{ .Values.headlamp.name }}
-        app.kubernetes.io/name: {{ .Values.headlamp.name }}
-        app.kubernetes.io/component: dashboard
+        app: headlamp
+        app.kubernetes.io/name: headlamp
+        app.kubernetes.io/part-of: nutritrack
     spec:
       serviceAccountName: headlamp
-      {{- with .Values.global.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       containers:
-        - name: {{ .Values.headlamp.name }}
-          image: "{{ .Values.headlamp.image.repository }}:{{ .Values.headlamp.image.tag }}"
-          imagePullPolicy: {{ .Values.headlamp.image.pullPolicy }}
+        - name: headlamp
+          image: ghcr.io/headlamp-k8s/headlamp:v0.25.0
           args:
             - "-in-cluster"
             - "-plugins-dir=/headlamp/plugins"
-            {{- if .Values.headlamp.oidc.enabled }}
-            - "-oidc-client-id={{ .Values.headlamp.oidc.clientId }}"
-            - "-oidc-client-secret={{ .Values.headlamp.oidc.clientSecret }}"
-            - "-oidc-idp-issuer-url=http://{{ .Values.keycloak.hostname }}/realms/nutritrack"
-            - "-oidc-scopes=openid,profile,email"
-            - "-base-url=http://{{ .Values.headlamp.hostname }}"
-            {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.headlamp.port }}
+              containerPort: 4466
               protocol: TCP
-          resources:
-            requests:
-              cpu: {{ .Values.headlamp.resources.requests.cpu }}
-              memory: {{ .Values.headlamp.resources.requests.memory }}
-            limits:
-              cpu: {{ .Values.headlamp.resources.limits.cpu }}
-              memory: {{ .Values.headlamp.resources.limits.memory }}
           readinessProbe:
             httpGet:
               path: /
-              port: http
+              port: 4466
             initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /
-              port: http
+              port: 4466
             initialDelaySeconds: 15
-            periodSeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"

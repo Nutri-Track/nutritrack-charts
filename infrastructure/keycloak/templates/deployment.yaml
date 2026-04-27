@@ -1,126 +1,79 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.keycloak.name }}
-  namespace: {{ .Values.keycloak.namespace }}
+  name: keycloak
+  namespace: keycloak
   labels:
-    app: {{ .Values.keycloak.name }}
-    app.kubernetes.io/name: {{ .Values.keycloak.name }}
-    app.kubernetes.io/component: identity
-    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+    app: keycloak
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: nutritrack
 spec:
-  replicas: {{ .Values.keycloak.replicas }}
+  replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.keycloak.name }}
+      app: keycloak
   template:
     metadata:
       labels:
-        app: {{ .Values.keycloak.name }}
-        app.kubernetes.io/name: {{ .Values.keycloak.name }}
-        app.kubernetes.io/component: identity
+        app: keycloak
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/part-of: nutritrack
     spec:
-      {{- with .Values.global.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      initContainers:
-        # Wait for Keycloak's dedicated PostgreSQL database to be ready
-        - name: wait-for-db
-          image: postgres:16-alpine
-          command:
-            - sh
-            - -c
-            - |
-              until pg_isready -h {{ .Values.postgresql.primaryHost }} -p {{ .Values.postgresql.port }} -U {{ .Values.keycloak.database.username }}; do
-                echo "Waiting for Keycloak database..."
-                sleep 2
-              done
-          env:
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.postgresql.secretName }}
-                  key: KEYCLOAK_USER_PASSWORD
       containers:
-        - name: {{ .Values.keycloak.name }}
-          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
-          imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
-          args:
-            - start
-            - --import-realm
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:25.0
+          args: ["start-dev"]
           ports:
             - name: http
-              containerPort: {{ .Values.keycloak.port }}
+              containerPort: 8080
               protocol: TCP
           env:
-            # ── Database Configuration ──
-            - name: KC_DB
-              value: "postgres"
-            - name: KC_DB_URL
-              value: "jdbc:postgresql://{{ .Values.postgresql.primaryHost }}:{{ .Values.postgresql.port }}/{{ .Values.keycloak.database.name }}"
-            - name: KC_DB_USERNAME
-              value: "{{ .Values.keycloak.database.username }}"
-            - name: KC_DB_PASSWORD
+            # ── Admin Credentials (from Secret) ──────────────────────
+            - name: KEYCLOAK_ADMIN
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.postgresql.secretName }}
-                  key: KEYCLOAK_USER_PASSWORD
-            # ── Keycloak Admin Credentials ──
-            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+                  name: keycloak-admin-secret
+                  key: KEYCLOAK_ADMIN
+            - name: KEYCLOAK_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.keycloak.secretName }}
-                  key: KEYCLOAK_ADMIN_USERNAME
-            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.keycloak.secretName }}
+                  name: keycloak-admin-secret
                   key: KEYCLOAK_ADMIN_PASSWORD
-            # ── HTTP / Proxy Configuration ──
+            # ── Hostname & Proxy ─────────────────────────────────────
+            # Ensures cookies are set for the correct domain (no cookie issues)
             - name: KC_HOSTNAME
-              value: "{{ .Values.keycloak.hostname }}"
+              value: "keycloak.dev.nutritrack360.in"
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HOSTNAME_STRICT_HTTPS
+              value: "false"
             - name: KC_PROXY_HEADERS
               value: "xforwarded"
             - name: KC_HTTP_ENABLED
               value: "true"
+            # ── Health & Metrics ──────────────────────────────────────
             - name: KC_HEALTH_ENABLED
               value: "true"
             - name: KC_METRICS_ENABLED
               value: "true"
-          volumeMounts:
-            - name: realm-config
-              mountPath: /opt/keycloak/data/import
-              readOnly: true
-          resources:
-            requests:
-              cpu: {{ .Values.keycloak.resources.requests.cpu }}
-              memory: {{ .Values.keycloak.resources.requests.memory }}
-            limits:
-              cpu: {{ .Values.keycloak.resources.limits.cpu }}
-              memory: {{ .Values.keycloak.resources.limits.memory }}
           readinessProbe:
             httpGet:
               path: /health/ready
-              port: http
+              port: 8080
             initialDelaySeconds: 30
             periodSeconds: 10
-            timeoutSeconds: 5
+            failureThreshold: 10
           livenessProbe:
             httpGet:
               path: /health/live
-              port: http
+              port: 8080
             initialDelaySeconds: 60
-            periodSeconds: 30
-            timeoutSeconds: 5
-          startupProbe:
-            httpGet:
-              path: /health/started
-              port: http
-            initialDelaySeconds: 15
-            periodSeconds: 5
-            failureThreshold: 30
-      volumes:
-        - name: realm-config
-          configMap:
-            name: keycloak-realm-config
+            periodSeconds: 15
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
