@@ -15,7 +15,7 @@ spec:
   policyTypes:
     - Ingress
   ingress:
-    # Allow from backend microservices
+    # Allow from backend microservices (same namespace)
     - from:
         {{- range .Values.postgresql.networkPolicy.allowedPodLabels }}
         - podSelector:
@@ -28,6 +28,17 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: db-init
+      ports:
+        - port: {{ .Values.postgresql.port }}
+          protocol: TCP
+    # Allow Keycloak from its dedicated namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.keycloak.namespace }}
+          podSelector:
+            matchLabels:
+              app: keycloak
       ports:
         - port: {{ .Values.postgresql.port }}
           protocol: TCP

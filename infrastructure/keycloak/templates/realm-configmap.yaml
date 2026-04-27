@@ -1,0 +1,138 @@
+{{/*
+  Keycloak Realm Import ConfigMap
+  ─────────────────────────────────────────────────────────
+  This ConfigMap contains the NutriTrack realm definition that
+  Keycloak will auto-import on first boot. It configures:
+    - Realm: nutritrack
+    - OIDC Clients: nutritrack-app, grafana, argocd, headlamp
+    - Roles: admin, user
+    - Default role mapping
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  namespace: {{ .Values.keycloak.namespace }}
+  labels:
+    app: {{ .Values.keycloak.name }}
+    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+data:
+  nutritrack-realm.json: |
+    {
+      "realm": "nutritrack",
+      "enabled": true,
+      "displayName": "NutriTrack",
+      "sslRequired": "external",
+      "registrationAllowed": true,
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": true,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": true,
+      "roles": {
+        "realm": [
+          {
+            "name": "admin",
+            "description": "NutriTrack administrator role"
+          },
+          {
+            "name": "user",
+            "description": "NutriTrack standard user role"
+          }
+        ]
+      },
+      "defaultRoles": ["user"],
+      "clients": [
+        {
+          "clientId": "nutritrack-app",
+          "name": "NutriTrack Application",
+          "enabled": true,
+          "publicClient": true,
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "rootUrl": "https://{{ .Values.global.domain }}",
+          "baseUrl": "/",
+          "redirectUris": [
+            "https://{{ .Values.global.domain }}/*",
+            "http://{{ .Values.global.domain }}/*"
+          ],
+          "webOrigins": [
+            "https://{{ .Values.global.domain }}",
+            "http://{{ .Values.global.domain }}"
+          ],
+          "protocol": "openid-connect",
+          "attributes": {
+            "post.logout.redirect.uris": "https://{{ .Values.global.domain }}/*"
+          }
+        },
+        {
+          "clientId": "grafana",
+          "name": "Grafana",
+          "enabled": true,
+          "publicClient": false,
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": false,
+          "rootUrl": "https://grafana.{{ .Values.global.domain }}",
+          "baseUrl": "/",
+          "redirectUris": [
+            "https://grafana.{{ .Values.global.domain }}/*",
+            "http://grafana.{{ .Values.global.domain }}/*"
+          ],
+          "webOrigins": [
+            "https://grafana.{{ .Values.global.domain }}",
+            "http://grafana.{{ .Values.global.domain }}"
+          ],
+          "protocol": "openid-connect",
+          "secret": "CHANGE_ME_GRAFANA_CLIENT_SECRET",
+          "attributes": {
+            "post.logout.redirect.uris": "https://grafana.{{ .Values.global.domain }}/*"
+          }
+        },
+        {
+          "clientId": "argocd",
+          "name": "Argo CD",
+          "enabled": true,
+          "publicClient": false,
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": false,
+          "rootUrl": "https://argocd.{{ .Values.global.domain }}",
+          "baseUrl": "/",
+          "redirectUris": [
+            "https://argocd.{{ .Values.global.domain }}/auth/callback",
+            "http://argocd.{{ .Values.global.domain }}/auth/callback"
+          ],
+          "webOrigins": [
+            "https://argocd.{{ .Values.global.domain }}",
+            "http://argocd.{{ .Values.global.domain }}"
+          ],
+          "protocol": "openid-connect",
+          "secret": "CHANGE_ME_ARGOCD_CLIENT_SECRET",
+          "attributes": {
+            "post.logout.redirect.uris": "https://argocd.{{ .Values.global.domain }}/*"
+          }
+        },
+        {
+          "clientId": "headlamp",
+          "name": "Headlamp",
+          "enabled": true,
+          "publicClient": false,
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": false,
+          "rootUrl": "https://headlamp.{{ .Values.global.domain }}",
+          "baseUrl": "/",
+          "redirectUris": [
+            "https://headlamp.{{ .Values.global.domain }}/*",
+            "http://headlamp.{{ .Values.global.domain }}/*"
+          ],
+          "webOrigins": [
+            "https://headlamp.{{ .Values.global.domain }}",
+            "http://headlamp.{{ .Values.global.domain }}"
+          ],
+          "protocol": "openid-connect",
+          "secret": "CHANGE_ME_HEADLAMP_CLIENT_SECRET",
+          "attributes": {
+            "post.logout.redirect.uris": "https://headlamp.{{ .Values.global.domain }}/*"
+          }
+        }
+      ]
+    }

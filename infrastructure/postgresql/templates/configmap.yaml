@@ -56,5 +56,6 @@ data:
     create_db_and_user "{{ .Values.foodService.database.name }}" "{{ .Values.foodService.database.username }}" "$FOOD_USER_PASSWORD"
     create_db_and_user "{{ .Values.macroService.database.name }}" "{{ .Values.macroService.database.username }}" "$MACRO_USER_PASSWORD"
     create_db_and_user "{{ .Values.complianceService.database.name }}" "{{ .Values.complianceService.database.username }}" "$COMPLIANCE_USER_PASSWORD"
+    create_db_and_user "{{ .Values.keycloak.database.name }}" "{{ .Values.keycloak.database.username }}" "$KEYCLOAK_USER_PASSWORD"
 
     echo "[init] Bootstrap complete."

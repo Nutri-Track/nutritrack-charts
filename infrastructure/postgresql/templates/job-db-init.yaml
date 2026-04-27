@@ -91,6 +91,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgresql.secretName }}
                   key: COMPLIANCE_USER_PASSWORD
+            - name: KEYCLOAK_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.secretName }}
+                  key: KEYCLOAK_USER_PASSWORD
           volumeMounts:
             - name: init-script
               mountPath: /scripts

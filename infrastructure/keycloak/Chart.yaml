@@ -1,0 +1,6 @@
+apiVersion: v2
+name: keycloak
+description: Keycloak IAM deployment for NutriTrack with realm configuration
+type: application
+version: 1.0.0
+appVersion: "26.0"

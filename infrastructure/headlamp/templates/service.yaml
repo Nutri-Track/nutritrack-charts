@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.headlamp.name }}
+  namespace: {{ .Values.headlamp.namespace }}
+  labels:
+    app: {{ .Values.headlamp.name }}
+    app.kubernetes.io/name: {{ .Values.headlamp.name }}
+    app.kubernetes.io/component: dashboard
+    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.headlamp.name }}
+  ports:
+    - name: http
+      port: {{ .Values.headlamp.port }}
+      targetPort: http
+      protocol: TCP

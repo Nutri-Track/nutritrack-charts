@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.headlamp.name }}
+  namespace: {{ .Values.headlamp.namespace }}
+  labels:
+    app: {{ .Values.headlamp.name }}
+    app.kubernetes.io/name: {{ .Values.headlamp.name }}
+    app.kubernetes.io/component: dashboard
+    app.kubernetes.io/part-of: {{ .Values.global.appName }}
+spec:
+  replicas: {{ .Values.headlamp.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.headlamp.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.headlamp.name }}
+        app.kubernetes.io/name: {{ .Values.headlamp.name }}
+        app.kubernetes.io/component: dashboard
+    spec:
+      serviceAccountName: headlamp
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.headlamp.name }}
+          image: "{{ .Values.headlamp.image.repository }}:{{ .Values.headlamp.image.tag }}"
+          imagePullPolicy: {{ .Values.headlamp.image.pullPolicy }}
+          args:
+            - "-in-cluster"
+            - "-plugins-dir=/headlamp/plugins"
+            {{- if .Values.headlamp.oidc.enabled }}
+            - "-oidc-client-id={{ .Values.headlamp.oidc.clientId }}"
+            - "-oidc-client-secret={{ .Values.headlamp.oidc.clientSecret }}"
+            - "-oidc-idp-issuer-url=http://{{ .Values.keycloak.hostname }}/realms/nutritrack"
+            - "-oidc-scopes=openid,profile,email"
+            - "-base-url=http://{{ .Values.headlamp.hostname }}"
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.headlamp.port }}
+              protocol: TCP
+          resources:
+            requests:
+              cpu: {{ .Values.headlamp.resources.requests.cpu }}
+              memory: {{ .Values.headlamp.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.headlamp.resources.limits.cpu }}
+              memory: {{ .Values.headlamp.resources.limits.memory }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30

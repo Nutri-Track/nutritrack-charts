@@ -32,6 +32,7 @@ postgresql:
       - app: food-service
       - app: macro-service
       - app: compliance-service
+      - app: keycloak
   auth:
     username: postgres
   resources:
@@ -124,3 +125,47 @@ resources:
   limits:
     cpu: "500m"
     memory: "512Mi"
+# ── Keycloak IAM ─────────────────────────────────────────────────────────
+keycloak:
+  name: keycloak
+  namespace: keycloak
+  hostname: keycloak.dev.nutritrack360.in
+  secretName: keycloak-secret
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "26.0"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 8080
+  database:
+    name: keycloak_db
+    username: keycloak_user
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+# ── Headlamp Dashboard ───────────────────────────────────────────────────
+headlamp:
+  name: headlamp
+  namespace: headlamp
+  hostname: headlamp.dev.nutritrack360.in
+  image:
+    repository: ghcr.io/headlamp-k8s/headlamp
+    tag: "latest"
+    pullPolicy: Always
+  replicas: 1
+  port: 4466
+  oidc:
+    enabled: true
+    clientId: headlamp
+    clientSecret: CHANGE_ME_HEADLAMP_CLIENT_SECRET
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "300m"
+      memory: "256Mi"
