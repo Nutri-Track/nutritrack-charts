@@ -107,7 +107,7 @@ frontend:
   routePrefix: /
   image:
     repository: nutritrack360/nutritrack-frontend
-    tag: dev-549dfe59e4b011b42718756f45f74b74e6185812
+    tag: v1.0.0
     pullPolicy: IfNotPresent
   replicas: 2
   port: 3000
