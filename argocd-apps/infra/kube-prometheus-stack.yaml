@@ -28,12 +28,8 @@ spec:
               cpu: 300m
               memory: 256Mi
           sidecar:
-            datasources:
-              enabled: true
             dashboards:
               enabled: true
-          # Use sidecar to inject Loki datasource
-          sidecar:
             datasources:
               enabled: true
               label: grafana_datasource
