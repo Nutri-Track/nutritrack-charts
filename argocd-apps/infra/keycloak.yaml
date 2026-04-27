@@ -13,7 +13,7 @@ spec:
     path: infrastructure/keycloak
   destination:
     server: https://kubernetes.default.svc
-    namespace: keycloak
+    namespace: nutritrack-dev
   syncPolicy:
     automated:
       prune: true

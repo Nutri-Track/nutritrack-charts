@@ -56,9 +56,10 @@ ArgoCD deploys the `keycloak-db-init` Job.
 - *Result:* Postgres is fully prepared.
 
 ### 2. The Keycloak Custom Resource
-ArgoCD deploys the `Keycloak` YAML.
+ArgoCD deploys the `Keycloak` YAML into `nutritrack-dev`.
 - The Keycloak Operator notices this.
-- The Operator spins up Keycloak `25.0`, sets up the JDBC connection to Postgres, and configures the `edge` proxy and `keycloak.dev.nutritrack360.in` hostname safely.
+- The Operator spins up Keycloak `25.0` in the same namespace as PostgreSQL. Because we added `- app: keycloak` to `values.yaml`, the **existing PostgreSQL NetworkPolicy automatically allows Keycloak to connect** without any manual overrides!
+- It configures the JDBC connection, sets up the `edge` proxy, and binds `keycloak.dev.nutritrack360.in`.
 - *Result:* Keycloak is live on Postgres!
 
 ### 3. The Realm Import Custom Resource
