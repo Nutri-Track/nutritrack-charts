@@ -20,7 +20,7 @@ spec:
   http:
     httpEnabled: true
   hostname:
-    hostname: http://keycloak.dev.nutritrack360.in
+    hostname: https://keycloak.dev.nutritrack360.in
     strict: false
   proxy:
     headers: xforwarded

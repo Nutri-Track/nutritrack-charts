@@ -41,35 +41,46 @@ sudo apt install -y certbot
 
 You need a **wildcard certificate** so it covers all your subdomains (`keycloak.dev.`, `headlamp.dev.`, `api.dev.`, etc.).
 
-### Option A: DNS Challenge (Recommended for Wildcard)
-
 ```bash
 sudo certbot certonly --manual --preferred-challenges dns \
   -d "*.dev.nutritrack360.in" \
   -d "dev.nutritrack360.in"
 ```
 
-**What happens:**
-1. Certbot will show you a TXT record value.
-2. Go to your DNS provider (Route53, Cloudflare, etc.).
-3. Create a TXT record:
-   - **Name:** `_acme-challenge.dev.nutritrack360.in`
-   - **Value:** (the string certbot shows you)
-4. Wait 30-60 seconds for DNS propagation.
-5. Press Enter in the terminal.
-6. Certbot verifies and downloads the certificate.
+**Certbot will show you a TXT record value.** Now add it to GoDaddy:
 
-### Option B: Standalone (If you only need specific subdomains)
+### Adding the TXT Record in GoDaddy
+
+1. Log into [GoDaddy DNS Management](https://dcc.godaddy.com/manage/) for `nutritrack360.in`
+2. Click **DNS** → **DNS Records**
+3. Click **Add New Record**
+4. Fill in:
+
+| Field | Value |
+|-------|-------|
+| **Type** | TXT |
+| **Name** | `_acme-challenge.dev` |
+| **Value** | *(paste the string certbot gave you)* |
+| **TTL** | 600 (or lowest available) |
+
+> **Important:** The Name is just `_acme-challenge.dev` — GoDaddy automatically appends `.nutritrack360.in`
+
+5. Click **Save**
+6. **Wait 2-3 minutes** for DNS propagation
+
+> **Note:** Certbot may ask for TWO TXT records (one for `*.dev.nutritrack360.in` and one for `dev.nutritrack360.in`). If so, add BOTH with the **same Name** (`_acme-challenge.dev`) but **different Values**. GoDaddy allows multiple TXT records with the same name.
+
+### Verify Before Pressing Enter
+
+From your EC2 terminal, check if the TXT record has propagated:
 
 ```bash
-sudo certbot certonly --standalone \
-  -d "keycloak.dev.nutritrack360.in" \
-  -d "headlamp.dev.nutritrack360.in" \
-  -d "api.dev.nutritrack360.in" \
-  -d "dev.nutritrack360.in"
+dig TXT _acme-challenge.dev.nutritrack360.in +short
 ```
 
-This uses HTTP challenge on port 80 (that's why we stopped HAProxy).
+If you see your value in the output, go back to certbot and **press Enter**.
+
+If `dig` shows nothing, wait another minute and try again. GoDaddy's TTL can be slow.
 
 ---
 
