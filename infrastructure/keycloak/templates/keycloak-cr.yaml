@@ -27,16 +27,9 @@ spec:
   additionalOptions:
     - name: spi-sticky-session-encoder-infinispan-should-attach-route
       value: "false"
-    - name: hostname-port
-      value: "80"
-  unsupported:
-    podTemplate:
-      spec:
-        containers:
-          - env:
-              - name: KC_HOSTNAME_URL
-                value: "http://keycloak.dev.nutritrack360.in"
-              - name: KC_HOSTNAME_ADMIN_URL
-                value: "http://keycloak.dev.nutritrack360.in"
+    - name: hostname-url
+      value: "http://keycloak.dev.nutritrack360.in"
+    - name: hostname-admin-url
+      value: "http://keycloak.dev.nutritrack360.in"
   ingress:
     enabled: false
