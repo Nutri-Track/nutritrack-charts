@@ -20,16 +20,12 @@ spec:
   http:
     httpEnabled: true
   hostname:
-    hostname: keycloak.dev.nutritrack360.in
+    hostname: http://keycloak.dev.nutritrack360.in
     strict: false
   proxy:
     headers: xforwarded
   additionalOptions:
     - name: spi-sticky-session-encoder-infinispan-should-attach-route
       value: "false"
-    - name: hostname-url
-      value: "http://keycloak.dev.nutritrack360.in"
-    - name: hostname-admin-url
-      value: "http://keycloak.dev.nutritrack360.in"
   ingress:
     enabled: false
