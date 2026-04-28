@@ -18,6 +18,11 @@ spec:
           severity: "CRITICAL,HIGH,MEDIUM"
         operator:
           builtInTrivyServer: false
+          scanJobContainersResources:
+            requests:
+              cpu: "10m"
+              memory: "50Mi"
+          concurrentScanJobsLimit: 1
   destination:
     server: https://kubernetes.default.svc
     namespace: trivy-system
