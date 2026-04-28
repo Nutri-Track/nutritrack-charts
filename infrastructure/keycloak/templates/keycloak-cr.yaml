@@ -22,7 +22,6 @@ spec:
   hostname:
     hostname: keycloak.dev.nutritrack360.in
     strict: false
-    strictHttps: false
   proxy:
     headers: xforwarded
   ingress:
