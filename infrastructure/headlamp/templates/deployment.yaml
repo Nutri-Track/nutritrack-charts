@@ -21,7 +21,7 @@ spec:
           image: ghcr.io/headlamp-k8s/headlamp:v0.25.0
           args:
             - "-in-cluster"
-            - "-oidc-redirect-url=https://headlamp.dev.nutritrack360.in/oidc-callback"
+
             # OIDC Integration!
             - "-oidc-client-id=headlamp"
             - "-oidc-client-secret=$(OIDC_CLIENT_SECRET)"
