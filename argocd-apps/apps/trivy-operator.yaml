@@ -16,7 +16,7 @@ spec:
         trivy:
           severity: "CRITICAL,HIGH,MEDIUM"
         operator:
-          builtInTrivyServer: true
+          builtInTrivyServer: false
   destination:
     server: https://kubernetes.default.svc
     namespace: trivy-system
