@@ -9,7 +9,7 @@ spec:
   project: nutritrack
   source:
     repoURL: https://aquasecurity.github.io/helm-charts/
-    targetRevision: 0.22.0
+    targetRevision: 0.24.1
     chart: trivy-operator
     helm:
       skipCrds: false
