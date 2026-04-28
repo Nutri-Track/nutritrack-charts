@@ -25,7 +25,7 @@ spec:
             - "-oidc-client-id=headlamp"
             - "-oidc-client-secret=$(OIDC_CLIENT_SECRET)"
             # This points exactly to the Realm created by the Operator
-            - "-oidc-idp-issuer-url=http://keycloak.dev.nutritrack360.in/realms/nutritrack"
+            - "-oidc-idp-issuer-url=https://keycloak.dev.nutritrack360.in/realms/nutritrack"
             - "-oidc-scopes=openid,profile,email"
           env:
             - name: OIDC_CLIENT_SECRET
