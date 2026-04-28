@@ -20,12 +20,21 @@ spec:
   http:
     httpEnabled: true
   hostname:
-    hostname: http://keycloak.dev.nutritrack360.in
+    hostname: keycloak.dev.nutritrack360.in
     strict: false
   proxy:
     headers: xforwarded
   additionalOptions:
     - name: spi-sticky-session-encoder-infinispan-should-attach-route
       value: "false"
+  unsupported:
+    podTemplate:
+      spec:
+        containers:
+          - env:
+              - name: KC_HOSTNAME_URL
+                value: "http://keycloak.dev.nutritrack360.in"
+              - name: KC_HOSTNAME_ADMIN_URL
+                value: "http://keycloak.dev.nutritrack360.in"
   ingress:
-    enabled: false # We use HTTPRoute (Gateway API) instead
+    enabled: false
