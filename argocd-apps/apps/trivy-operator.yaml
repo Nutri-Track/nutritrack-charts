@@ -9,7 +9,7 @@ spec:
   project: nutritrack
   source:
     repoURL: https://aquasecurity.github.io/helm-charts/
-    targetRevision: 0.24.1
+    targetRevision: 0.22.0
     chart: trivy-operator
     helm:
       skipCrds: false
@@ -19,7 +19,6 @@ spec:
         operator:
           builtInTrivyServer: false
           concurrentScanJobsLimit: 1
-          scanJobTimeout: 5m
   destination:
     server: https://kubernetes.default.svc
     namespace: trivy-system
@@ -29,4 +28,5 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - SkipNodesLookup=true
+      - ServerSideApply=true
+      - Replace=true
