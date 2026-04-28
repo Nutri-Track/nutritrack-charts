@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trivy-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: nutritrack
+  source:
+    repoURL: https://aquasecurity.github.io/helm-charts/
+    targetRevision: 0.24.1 # Latest stable version
+    chart: trivy-operator
+    helm:
+      values: |
+        trivy:
+          severity: "CRITICAL,HIGH,MEDIUM"
+        operator:
+          builtInTrivyServer: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trivy-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
