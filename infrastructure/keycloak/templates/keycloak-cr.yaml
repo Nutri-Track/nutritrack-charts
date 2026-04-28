@@ -27,6 +27,8 @@ spec:
   additionalOptions:
     - name: spi-sticky-session-encoder-infinispan-should-attach-route
       value: "false"
+    - name: hostname-port
+      value: "80"
   unsupported:
     podTemplate:
       spec:
