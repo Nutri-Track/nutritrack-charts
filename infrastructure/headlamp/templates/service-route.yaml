@@ -19,7 +19,9 @@ metadata:
   namespace: headlamp
 spec:
   parentRefs:
-    - name: nutritrack-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: nutritrack-gateway
       namespace: nutritrack-dev
   hostnames:
     - "headlamp.dev.nutritrack360.in"
@@ -29,5 +31,8 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: headlamp
+        - group: ""
+          kind: Service
+          name: headlamp
           port: 4466
+          weight: 1

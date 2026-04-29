@@ -7,7 +7,9 @@ metadata:
     app.kubernetes.io/part-of: nutritrack
 spec:
   parentRefs:
-  - name: nutritrack-gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: nutritrack-gateway
   hostnames:
   - {{ .Values.global.domain | quote }}
   rules:
@@ -18,8 +20,11 @@ spec:
         type: PathPrefix
         value: /api/auth
     backendRefs:
-    - name: auth-service
+    - group: ""
+      kind: Service
+      name: auth-service
       port: 8000
+      weight: 1
 
   # ── Food Service ──────────────────────────────────────────────────────────
   - matches:
@@ -27,8 +32,11 @@ spec:
         type: PathPrefix
         value: /api/food
     backendRefs:
-    - name: food-service
+    - group: ""
+      kind: Service
+      name: food-service
       port: 8001
+      weight: 1
 
   # ── Macro Service ─────────────────────────────────────────────────────────
   - matches:
@@ -36,8 +44,11 @@ spec:
         type: PathPrefix
         value: /api/macro
     backendRefs:
-    - name: macro-service
+    - group: ""
+      kind: Service
+      name: macro-service
       port: 8002
+      weight: 1
 
   # ── Compliance Service ────────────────────────────────────────────────────
   - matches:
@@ -45,8 +56,11 @@ spec:
         type: PathPrefix
         value: /api/compliance
     backendRefs:
-    - name: compliance-service
+    - group: ""
+      kind: Service
+      name: compliance-service
       port: 8003
+      weight: 1
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -58,7 +72,9 @@ metadata:
     app.kubernetes.io/part-of: nutritrack
 spec:
   parentRefs:
-  - name: nutritrack-gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: nutritrack-gateway
   hostnames:
   - {{ .Values.global.domain | quote }}
   rules:
@@ -69,5 +85,8 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: frontend
+    - group: ""
+      kind: Service
+      name: frontend
       port: 3000
+      weight: 1

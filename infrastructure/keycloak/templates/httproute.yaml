@@ -5,7 +5,9 @@ metadata:
   namespace: nutritrack-dev
 spec:
   parentRefs:
-    - name: nutritrack-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: nutritrack-gateway
       namespace: nutritrack-dev
   hostnames:
     - "keycloak.dev.nutritrack360.in"
@@ -16,5 +18,8 @@ spec:
             value: /
       backendRefs:
         # The Keycloak Operator automatically creates a service named <cr-name>-service
-        - name: nutritrack-keycloak-service
+        - group: ""
+          kind: Service
+          name: nutritrack-keycloak-service
           port: 8080
+          weight: 1
