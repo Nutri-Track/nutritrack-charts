@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: slack-test-alert
+  namespace: monitoring
+  labels:
+    release: nutritrack-monitoring
+spec:
+  groups:
+  - name: slack-test.rules
+    rules:
+    - alert: AlwaysFiringTestAlert
+      expr: vector(1)
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        title: "Test Alert for Slack Integration"
+        description: "This is a safe test alert to verify that Slack notifications are working correctly."
