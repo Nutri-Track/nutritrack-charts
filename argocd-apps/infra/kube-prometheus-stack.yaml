@@ -62,8 +62,41 @@ spec:
         # ── Alertmanager ────────────────────────────────────────────
         alertmanager:
           enabled: true
+          config:
+            global:
+              resolve_timeout: 5m
+              # Read the webhook from the mounted secret file
+              slack_api_url_file: /etc/alertmanager/secrets/slack-webhook/url
+            route:
+              group_by: ['alertname', 'severity', 'job']
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 4h
+              receiver: 'slack-notifications'
+              routes:
+                - match:
+                    severity: critical
+                  receiver: 'slack-notifications'
+            receivers:
+              - name: 'slack-notifications'
+                slack_configs:
+                  - channel: '#alerts'
+                    send_resolved: true
+                    icon_emoji: ':fire:'
+                    title: '{{ template "slack.default.title" . }}'
+                    text: >-
+                      {{ range .Alerts -}}
+                      *Alert:* {{ .Annotations.title }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
+                      *Description:* {{ .Annotations.description }}
+                      *Details:*
+                        {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+                        {{ end }}
+                      {{ end }}
           alertmanagerSpec:
             retention: 72h
+            # Mount the SealedSecret as a file
+            secrets:
+              - slack-webhook
             resources:
               requests:
                 cpu: 50m
